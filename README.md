@@ -1,152 +1,33 @@
-# Odoo Production Deployment Document
+Odoo Production Deployment Document
 
-## 1. Odoo Code Setup
-1. **Copy the Odoo Community Code**
-   - Transfer the Odoo community code to a specific location on the server.
+1.  Copy the odoo community code to a specific location on server.
+2.  Install all the python dependency using pip command (pip -r requiremt.txt)
+3.  Create a separate service for the odoo instance by using below steps
+4.  Navigate to location **/etc/systemd/system**
+5.  Create a service file using command **nano** **\<yourodooinstancename\>.service**
+6.  ![](media/0f6e9e87cc4944ea85effc6c86c784c2.png)Paste below content on file **\<yourodooinstancename\>.service**
+7.  Change file permission using command **sudo chmod 755 \<yourodooinstancename\>.service**
+8.  Change file owner using command **sudo chown root: \<yourodooinstancename\>.service**
+9.  Go the **\<odoo-folder-location\>/Debian/odoo.conf** and search for logfile key and paste the value **/var/log/\< yourodooinstancename\>/odoo.log**
+10. Create log folder using command **mkdir -p /var/log/\< yourodooinstancename\>**
+11. Navigate to location **/var/log/yourodooinstancename** using command   
+    **cd /var/log/yourodooinstancename** and create two file using command   
+    **touch odoo.log odoo_error.log**
+12. Change the file permission using command **sudo chmod 640 odoo.log odoo_error.log**
+13. Chnage the file owner using command **sudo chown postgres: odoo.log odoo_error.log**
+14. Execute the command for service reload **sudo systemctl daemon-reload**
+15. Now execute the command **sudo systemctl start \<yourodooinstancename\>.service**
+16. ![](media/4251eab677b6d52b29ef665efd825d1f.png)Execute the command **sudo systemctl status \<yourodooinstancename\>.service** to check if service is running or not. If service is running then you will below response.
+17. If service is not **active(running)** go to location **/var/log/\<yourodooinstancename\>/odoo_error.log** to check the issue.
+18. Execute the command **sudo systemctl stop \<yourodooinstancename\>.service** to stop the service/instance
+19. Execute the command command **sudo systemctl enable \<yourodooinstancename\>.service** to auto start the service wherever system rebooted.
+20. Now implement the log rotation for the logs.
 
-2. **Install Python Dependencies**
-   - Run the following command to install all required Python dependencies:
-     ```bash
-     pip install -r requiremt.txt
-     ```
+Odoo Log Rotation Step
 
-## 2. Create Odoo Service
-1. **Navigate to Systemd Directory**
-   ```bash
-   cd /etc/systemd/system
-Create Service File
-
-Use the command to create a service file:
-bash
-Copy code
-nano <yourodooinstancename>.service
-Add Service Configuration
-
-Paste the following content into <yourodooinstancename>.service:
-ini
-Copy code
-[Unit]
-Description=Odoo Service
-After=postgresql.service
-
-[Service]
-User=postgres
-ExecStart=<odoo-folder-location>/odoo-bin -c <odoo-folder-location>/Debian/odoo.conf
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-Change File Permissions
-
-bash
-Copy code
-sudo chmod 755 <yourodooinstancename>.service
-Change File Owner
-
-bash
-Copy code
-sudo chown root: <yourodooinstancename>.service
-Update Log Configuration
-
-Open the Odoo configuration file:
-bash
-Copy code
-nano <odoo-folder-location>/Debian/odoo.conf
-Find the logfile key and set its value:
-bash
-Copy code
-logfile = /var/log/<yourodooinstancename>/odoo.log
-Create Log Folder
-
-bash
-Copy code
-mkdir -p /var/log/<yourodooinstancename>
-Create Log Files
-
-bash
-Copy code
-cd /var/log/<yourodooinstancename>
-touch odoo.log odoo_error.log
-Change Log File Permissions
-
-bash
-Copy code
-sudo chmod 640 odoo.log odoo_error.log
-Change Log File Owner
-
-bash
-Copy code
-sudo chown postgres: odoo.log odoo_error.log
-Reload Systemd Daemon
-
-bash
-Copy code
-sudo systemctl daemon-reload
-Start Odoo Service
-
-bash
-Copy code
-sudo systemctl start <yourodooinstancename>.service
-Check Service Status
-
-bash
-Copy code
-sudo systemctl status <yourodooinstancename>.service
-If the service is running, you will see an active response.
-Troubleshooting
-
-If the service is not active, check the error log:
-bash
-Copy code
-cat /var/log/<yourodooinstancename>/odoo_error.log
-Stop Odoo Service
-
-bash
-Copy code
-sudo systemctl stop <yourodooinstancename>.service
-Enable Service at Boot
-
-bash
-Copy code
-sudo systemctl enable <yourodooinstancename>.service
-3. Implement Log Rotation
-Navigate to Logrotate Directory
-
-bash
-Copy code
-cd /etc/logrotate.d
-Create Logrotate File
-
-bash
-Copy code
-nano <yourodooinstancename>
-Add Log Rotation Configuration
-
-Paste the following content into <yourodooinstancename>:
-plaintext
-Copy code
-/var/log/<yourodooinstancename>/*.log {
-    daily
-    missingok
-    rotate 7
-    compress
-    delaycompress
-    notifempty
-    create 640 postgres postgres
-    sharedscripts
-    postrotate
-        systemctl reload <yourodooinstancename>.service > /dev/null 2>/dev/null || true
-    endscript
-}
-Test Log Rotation Configuration
-
-Run the command to check the log rotation:
-bash
-Copy code
-sudo logrotate -d /etc/logrotate.d/<yourodooinstancename>
-Force Log Rotation Test
-
-bash
-Copy code
-sudo logrotate -f /etc/logrotate.d/<yourodooinstancename>
-Note: Replace <yourodooinstancename> and <odoo-folder-location> with your actual instance name and folder path.
+1.  Navigate to location **/etc/logrotate.d**
+2.  Create a file using command **nano \<yourodooinstancename\>**
+3.  ![](media/c6453754135a9819c4501c89e1ecfb8a.png)Paste the below code to the file **\<yourodooinstancename\>**
+4.  Execute the command **sudo logrotate -d yourodooinstancename** to implement log rotation.
+5.  Execute the command **sudo logrotate -f yourodooinstancename** to test the log rotation.**  
+    **
